@@ -48,7 +48,7 @@ jobs:
           git tag "v${{ steps.bump.outputs.version }}"
           git push origin HEAD --tags
 
-      - name: Trigger release workflow
-        run: gh workflow run release.yml --ref "v${{ steps.bump.outputs.version }}"
-        env:
-          GH_TOKEN: ${{ github.token }}
+  release:
+    needs: bump
+    uses: ./.github/workflows/release.yml
+    secrets: inherit
