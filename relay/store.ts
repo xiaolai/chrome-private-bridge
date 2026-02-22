@@ -1,16 +1,13 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs"
 import { join } from "path"
+import { config } from "./config"
 import type { ApiKey } from "./types"
 
 export interface KeyStore {
   keys: ApiKey[]
 }
 
-const CONFIG_DIR = join(
-  process.env.HOME || process.env.USERPROFILE || "~",
-  ".config",
-  "chrome-bridge"
-)
+const CONFIG_DIR = config.configDir
 const KEYS_FILE = join(CONFIG_DIR, "keys.json")
 
 export function loadKeys(): KeyStore {

@@ -4,7 +4,8 @@ export async function evaluate(params: { expression: string; tabId?: number }): 
     target: { tabId },
     func: (expr: string) => {
       try {
-        return { result: eval(expr) }
+        // WI-1.2: Use Function constructor instead of direct eval
+        return { result: new Function(expr)() }
       } catch (e: any) {
         return { error: e.message }
       }

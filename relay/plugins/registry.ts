@@ -1,4 +1,5 @@
-import type { BridgePlugin, CommandHandler, ExecutionContext, PluginContext } from "../types"
+import { log } from "../logger"
+import type { BridgePlugin, CommandHandler, PluginContext } from "../types"
 
 const plugins = new Map<string, BridgePlugin>()
 
@@ -7,14 +8,14 @@ export async function registerPlugin(plugin: BridgePlugin): Promise<void> {
     throw new Error(`Plugin "${plugin.name}" already registered`)
   }
   const ctx: PluginContext = {
-    log: (msg: string) => console.log(`[plugin:${plugin.name}] ${msg}`),
+    log: (msg: string) => log("info", "plugin.log", { plugin: plugin.name, message: msg }),
   }
   if (plugin.init) {
     await plugin.init(ctx)
   }
   plugins.set(plugin.name, plugin)
   const cmds = Object.keys(plugin.commands)
-  console.log(`[plugins] Registered "${plugin.name}" v${plugin.version} (${cmds.length} commands: ${cmds.join(", ")})`)
+  log("info", "plugin.registered", { name: plugin.name, version: plugin.version, commands: cmds })
 }
 
 export function getPluginCommand(fullCommand: string): CommandHandler | null {

@@ -1,4 +1,4 @@
-import { configure, connect, disconnect, onMessage, onStatus, send } from "./lib/ws-client"
+import { configure, connect, disconnect, isConnected, onMessage, onStatus, send } from "./lib/ws-client"
 import { navigate } from "./lib/commands/navigate"
 import { tabList, tabCreate, tabClose } from "./lib/commands/tabs"
 import { click, type as typeCmd, press, scroll } from "./lib/commands/interact"
@@ -37,15 +37,18 @@ onMessage(async (msg) => {
 
   const handler = commands[msg.command]
   if (!handler) {
-    send({ id: msg.id, type: "response", error: `Unknown command: ${msg.command}` })
+    const sent = send({ id: msg.id, type: "response", error: `Unknown command: ${msg.command}` })
+    if (!sent) console.warn("[bg] Failed to send unknown command response")
     return
   }
 
   try {
     const result = await handler(msg.params ?? {})
-    send({ id: msg.id, type: "response", result })
+    const sent = send({ id: msg.id, type: "response", result })
+    if (!sent) console.warn("[bg] Failed to send command response")
   } catch (err: any) {
-    send({ id: msg.id, type: "response", error: err.message })
+    const sent = send({ id: msg.id, type: "response", error: err.message })
+    if (!sent) console.warn("[bg] Failed to send error response")
   }
 })
 
@@ -75,8 +78,9 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     sendResponse({ ok: true })
     return true
   }
+  // WI-3.4: Return actual connection status instead of hardcoded false
   if (msg.action === "getStatus") {
-    sendResponse({ connected: false })
+    sendResponse({ connected: isConnected() })
     return true
   }
 })

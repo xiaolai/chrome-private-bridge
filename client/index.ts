@@ -33,6 +33,14 @@ export class ChromeBridge {
       body: JSON.stringify({ command, params }),
       signal: AbortSignal.timeout(this.timeout),
     })
+    if (!resp.ok) {
+      const text = await resp.text()
+      try {
+        return JSON.parse(text)
+      } catch {
+        return { id: "", ok: false, error: `HTTP ${resp.status}: ${text}`, duration: 0 }
+      }
+    }
     return resp.json()
   }
 

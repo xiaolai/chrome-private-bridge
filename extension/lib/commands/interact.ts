@@ -54,8 +54,11 @@ export async function press(params: { key: string; modifiers?: string[]; tabId?:
         altKey: mods.includes("alt"),
         metaKey: mods.includes("meta"),
       }
-      document.activeElement?.dispatchEvent(new KeyboardEvent("keydown", opts))
-      document.activeElement?.dispatchEvent(new KeyboardEvent("keyup", opts))
+      // WI-5.3: Check for active element before dispatching
+      const target = document.activeElement
+      if (!target) return { success: false, error: "No active element" }
+      target.dispatchEvent(new KeyboardEvent("keydown", opts))
+      target.dispatchEvent(new KeyboardEvent("keyup", opts))
       return { success: true }
     },
     args: [params.key, params.modifiers ?? []],

@@ -1,0 +1,17 @@
+{
+  "name": "chrome-private-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch relay/server.ts",
+    "start": "bun relay/server.ts",
+    "build:ext": "bun extension/build.ts",
+    "test": "bun test",
+    "keygen": "bun relay/server.ts keygen",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
+    "@types/chrome": "latest"
+  }
+}

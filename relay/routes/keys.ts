@@ -15,7 +15,10 @@ export async function handleKeys(req: Request, remoteIP: string): Promise<Respon
 
     if (act === "generate") {
       const name = (body.name as string) || "unnamed"
-      const key = generateKey(name)
+      const cmds = body.commands
+        ? (Array.isArray(body.commands) ? body.commands as string[] : (body.commands as string).split(","))
+        : null
+      const key = generateKey(name, cmds)
       return json({ ok: true, key, name })
     }
 

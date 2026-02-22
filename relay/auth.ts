@@ -3,7 +3,10 @@ import { loadKeys, saveKeys, type KeyStore } from "./store"
 const KEY_PREFIX = "bby_"
 const KEY_LENGTH = 32
 
-export function generateKey(name: string): string {
+let dirty = false
+let keyCache: KeyStore | null = null
+
+export function generateKey(name: string, allowedCommands: string[] | null = null): string {
   const hex = Array.from(crypto.getRandomValues(new Uint8Array(KEY_LENGTH)))
     .map(b => b.toString(16).padStart(2, "0"))
     .join("")
@@ -15,20 +18,35 @@ export function generateKey(name: string): string {
     created: new Date().toISOString(),
     lastUsed: null,
     allowedIPs: null,
+    allowedCommands,
   })
   saveKeys(store)
+  keyCache = null // invalidate cache
   return key
 }
 
 export function validateKey(token: string, remoteIP: string): boolean {
   if (!token.startsWith(KEY_PREFIX)) return false
-  const store = loadKeys()
-  const entry = store.keys.find(k => k.key === token)
+  if (!keyCache) keyCache = loadKeys()
+  const entry = keyCache.keys.find(k => k.key === token)
   if (!entry) return false
   if (entry.allowedIPs && !entry.allowedIPs.includes(remoteIP)) return false
   entry.lastUsed = new Date().toISOString()
-  saveKeys(store)
+  dirty = true
   return true
+}
+
+export function getKeyPermissions(token: string): string[] | null {
+  if (!keyCache) keyCache = loadKeys()
+  const entry = keyCache.keys.find(k => k.key === token)
+  return entry?.allowedCommands ?? null
+}
+
+export function flushKeys(): void {
+  if (dirty && keyCache) {
+    saveKeys(keyCache)
+    dirty = false
+  }
 }
 
 export function listKeys(): Array<{ name: string; created: string; lastUsed: string | null; prefix: string }> {
@@ -47,6 +65,7 @@ export function revokeKey(prefix: string): boolean {
   if (idx === -1) return false
   store.keys.splice(idx, 1)
   saveKeys(store)
+  keyCache = null // invalidate cache
   return true
 }
 

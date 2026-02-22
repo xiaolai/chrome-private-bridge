@@ -11,14 +11,12 @@ export interface CommandResponse {
   duration: number
 }
 
-export interface WsMessage {
-  id: string
-  type: "command" | "response" | "event"
-  command?: string
-  params?: Record<string, unknown>
-  result?: unknown
-  error?: string
-}
+export type WsMessage =
+  | { type: "command"; id: string; command: string; params?: Record<string, unknown> }
+  | { type: "response"; id: string; result?: unknown; error?: string }
+  | { type: "event"; command: string; data?: unknown }
+  | { type: "auth"; token: string }
+  | { type: "auth"; ok: boolean; error?: string }
 
 export interface ApiKey {
   key: string
@@ -26,6 +24,7 @@ export interface ApiKey {
   created: string
   lastUsed: string | null
   allowedIPs: string[] | null
+  allowedCommands: string[] | null
 }
 
 export interface PendingRequest {

@@ -74,8 +74,9 @@ let pb = NSPasteboard.general
 pb.clearContents()
 pb.writeObjects([image])
 `
-  const tmpFile = `/tmp/chrome-bridge-clip-${Date.now()}.swift`
-  Bun.write(tmpFile, swift)
+  // WI-1.5: Use crypto.randomUUID for unpredictable temp file names
+  const tmpFile = `/tmp/chrome-bridge-clip-${crypto.randomUUID()}.swift`
+  Bun.write(tmpFile, swift, { mode: 0o600 })
 
   const result = spawnSync("swift", [tmpFile, base64])
   spawnSync("rm", [tmpFile])
@@ -98,6 +99,10 @@ function exec(command: string, args: string[]): { success: boolean; stdout?: str
 }
 
 async function main() {
+  // WI-2.5: Detect stdin EOF and handle SIGTERM
+  process.stdin.on("end", () => process.exit(0))
+  process.on("SIGTERM", () => process.exit(0))
+
   while (true) {
     try {
       const msg = await readMessage()
@@ -119,6 +124,9 @@ async function main() {
 
       sendMessage(response)
     } catch (err: any) {
+      if (err.message?.includes("Cannot read") || err.code === "ERR_STREAM_PREMATURE_CLOSE") {
+        process.exit(0) // stdin closed
+      }
       sendMessage({ success: false, error: err.message })
     }
   }

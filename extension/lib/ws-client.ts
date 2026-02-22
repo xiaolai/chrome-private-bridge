@@ -72,10 +72,14 @@ export function disconnect(): void {
   ws = null
 }
 
-export function send(data: unknown): void {
+// WI-5.2: Return success/failure and log on failure
+export function send(data: unknown): boolean {
   if (ws?.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(data))
+    return true
   }
+  console.warn("[ws] Cannot send: socket not open")
+  return false
 }
 
 export function isConnected(): boolean {
@@ -86,7 +90,8 @@ function scheduleReconnect(): void {
   if (reconnectTimer) return
   reconnectTimer = setTimeout(() => {
     reconnectTimer = null
-    reconnectDelay = Math.min(reconnectDelay * 1.5, 30000)
+    // WI-5.1: Add jitter to prevent thundering herd
+    reconnectDelay = Math.min(reconnectDelay * 1.5, 30000) * (1 + Math.random() * 0.3)
     connect()
   }, reconnectDelay)
 }

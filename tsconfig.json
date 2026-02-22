@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["bun-types"]
+  },
+  "include": ["relay/**/*.ts", "client/**/*.ts", "native-host/**/*.ts"],
+  "exclude": ["extension/**/*.ts"]
+}

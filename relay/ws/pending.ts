@@ -1,6 +1,5 @@
+import { config } from "../config"
 import type { PendingRequest } from "../types"
-
-const DEFAULT_TIMEOUT = 30_000
 
 export class PendingMap {
   private map = new Map<string, PendingRequest>()
@@ -10,7 +9,7 @@ export class PendingMap {
     return `cmd_${(++this.counter).toString(36)}_${Date.now().toString(36)}`
   }
 
-  add(id: string, timeoutMs = DEFAULT_TIMEOUT): Promise<unknown> {
+  add(id: string, timeoutMs = config.commandTimeout): Promise<unknown> {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.map.delete(id)
