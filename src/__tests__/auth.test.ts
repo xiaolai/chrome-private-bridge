@@ -115,6 +115,13 @@ describe("auth module", () => {
     expect(revokeKey("bby_zzzz")).toBe(false)
   })
 
+  test("revokeKey() with ambiguous prefix returns 'ambiguous'", () => {
+    generateKey("dup1")
+    generateKey("dup2")
+    // "bby_" matches all keys
+    expect(revokeKey("bby_")).toBe("ambiguous")
+  })
+
   test("listKeys() returns key metadata", () => {
     generateKey("alpha")
     generateKey("beta")

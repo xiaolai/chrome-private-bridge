@@ -122,6 +122,14 @@ describe("registry/define", () => {
     expect(map.get(name)).toBeDefined()
   })
 
+  test("defineCommand() throws on duplicate name", () => {
+    const name = uid("dup")
+    defineCommand({ name, description: "First", extensionCommand: "a", params: z.object({}) })
+    expect(() => {
+      defineCommand({ name, description: "Second", extensionCommand: "b", params: z.object({}) })
+    }).toThrow(`Command "${name}" already registered`)
+  })
+
   test("clearCommands() is a function", () => {
     // clearCommands() affects global state so we only verify it exists
     // Actual clearing behavior is tested in plugin loader tests with controlled state

@@ -156,7 +156,7 @@ describe("REST keys handler", () => {
     expect(data.ok).toBe(true)
   })
 
-  test("POST with invalid JSON body falls back gracefully", async () => {
+  test("POST with invalid JSON body returns 400 with error message", async () => {
     const req = new Request("http://localhost:7890/api/v1/keys", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -164,5 +164,26 @@ describe("REST keys handler", () => {
     })
     const resp = await handleKeys(req, "127.0.0.1")
     expect(resp.status).toBe(400)
+    const data = await resp.json()
+    expect(data.error).toContain("Invalid JSON body")
+  })
+
+  test("POST generate with invalid commands type returns 400", async () => {
+    const req = makeReq("POST", { action: "generate", name: "bad", commands: 123 })
+    const resp = await handleKeys(req, "127.0.0.1")
+    expect(resp.status).toBe(400)
+    const data = await resp.json()
+    expect(data.error).toContain("commands")
+  })
+
+  test("POST revoke with ambiguous prefix returns 400", async () => {
+    // Generate two keys, then try to revoke with common prefix "bby_"
+    generateKey("ambig1")
+    generateKey("ambig2")
+    const req = makeReq("POST", { action: "revoke", prefix: "bby_" })
+    const resp = await handleKeys(req, "127.0.0.1")
+    expect(resp.status).toBe(400)
+    const data = await resp.json()
+    expect(data.error).toContain("Ambiguous")
   })
 })

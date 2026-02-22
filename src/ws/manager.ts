@@ -25,11 +25,20 @@ export async function sendToExtension(command: string, params?: Record<string, u
   const id = pending.nextId()
   const msg = { id, type: "command" as const, command, params }
   const promise = pending.add(id)
-  extensionSocket!.send(JSON.stringify(msg))
+  try {
+    extensionSocket!.send(JSON.stringify(msg))
+  } catch (err) {
+    pending.reject(id, err instanceof Error ? err : new Error(String(err)))
+  }
   return promise
 }
 
 export function handleOpen(ws: ServerWebSocket): void {
+  if (extensionSocket && extensionSocket !== ws && extensionSocket.readyState === WebSocket.OPEN) {
+    log("warn", "ws.replacing_connection")
+    pending.clear()
+    try { extensionSocket.close() } catch { /* already closing */ }
+  }
   extensionSocket = ws
   log("info", "ws.connected")
 }

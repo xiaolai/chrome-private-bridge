@@ -7,6 +7,7 @@ import { handleKeys } from "./rest/keys"
 import { handleStatus } from "./rest/status"
 import { handleClose, handleMessage, handleOpen, shutdownPending } from "./ws/manager"
 import { registerPlugin } from "./plugins/loader"
+import { jsonResponse } from "./response"
 import xPost from "./plugins/x-post"
 import wechatPost from "./plugins/wechat-post"
 
@@ -41,16 +42,14 @@ function getRemoteIP(req: Request, server: any): string {
 }
 
 function json(data: unknown, status = 200): Response {
-  const headers: Record<string, string> = {
-    "content-type": "application/json",
-    "x-content-type-options": "nosniff",
-  }
+  const resp = jsonResponse(data, status)
+  resp.headers.set("x-content-type-options", "nosniff")
   if (config.corsOrigin) {
-    headers["access-control-allow-origin"] = config.corsOrigin
-    headers["access-control-allow-headers"] = "Authorization, Content-Type"
-    headers["access-control-allow-methods"] = "GET, POST, OPTIONS"
+    resp.headers.set("access-control-allow-origin", config.corsOrigin)
+    resp.headers.set("access-control-allow-headers", "Authorization, Content-Type")
+    resp.headers.set("access-control-allow-methods", "GET, POST, OPTIONS")
   }
-  return new Response(JSON.stringify(data), { status, headers })
+  return resp
 }
 
 function isAllowedWsOrigin(origin: string | null): boolean {

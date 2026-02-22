@@ -59,10 +59,12 @@ export function listKeys(): Array<{ name: string; created: string; lastUsed: str
   }))
 }
 
-export function revokeKey(prefix: string): boolean {
+export function revokeKey(prefix: string): boolean | "ambiguous" {
   const store = loadKeys()
-  const idx = store.keys.findIndex(k => k.key.startsWith(prefix))
-  if (idx === -1) return false
+  const matches = store.keys.filter(k => k.key.startsWith(prefix))
+  if (matches.length === 0) return false
+  if (matches.length > 1) return "ambiguous"
+  const idx = store.keys.indexOf(matches[0])
   store.keys.splice(idx, 1)
   saveKeys(store)
   keyCache = null // invalidate cache

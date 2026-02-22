@@ -45,10 +45,15 @@ export class ChromeBridge {
   }
 
   async status(): Promise<{ ok: boolean; extension: string; uptime: number }> {
-    const resp = await fetch(`${this.url}/api/v1/status`, {
-      headers: { "authorization": `Bearer ${this.apiKey}` },
-    })
-    return resp.json()
+    try {
+      const resp = await fetch(`${this.url}/api/v1/status`, {
+        headers: { "authorization": `Bearer ${this.apiKey}` },
+        signal: AbortSignal.timeout(this.timeout),
+      })
+      return resp.json()
+    } catch {
+      return { ok: false, extension: "unknown", uptime: 0 }
+    }
   }
 
   async navigate(url: string, tabId?: number) {

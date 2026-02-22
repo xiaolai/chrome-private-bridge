@@ -41,6 +41,7 @@ export interface BridgePlugin {
 
 export interface PluginCommandHandler {
   description: string
+  params?: import("zod/v4").z.ZodObject<any>
   execute(params: unknown, ctx: ExecutionContext): Promise<unknown>
 }
 

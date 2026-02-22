@@ -70,4 +70,10 @@ describe("store module", () => {
     expect(store.keys).toHaveLength(1)
     expect(store.keys[0].name).toBe("existing")
   })
+
+  test("loadKeys returns empty store when JSON has no keys array", () => {
+    writeFileSync(join(testDir, "keys.json"), JSON.stringify({ notkeys: true }))
+    const store = loadKeys()
+    expect(store.keys).toEqual([])
+  })
 })

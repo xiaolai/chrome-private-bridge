@@ -119,6 +119,14 @@ describe("ChromeBridge client", () => {
     expect(status.uptime).toBe(42)
   })
 
+  test("status() returns fallback on network error", async () => {
+    const badBridge = new ChromeBridge({ url: "http://localhost:1", apiKey: "bby_test", timeout: 500 })
+    const status = await badBridge.status()
+    expect(status.ok).toBe(false)
+    expect(status.extension).toBe("unknown")
+    expect(status.uptime).toBe(0)
+  })
+
   // Convenience methods
   test("navigate() sends navigate command", async () => {
     const result = await bridge.navigate("https://example.com")

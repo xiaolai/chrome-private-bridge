@@ -27,8 +27,7 @@ export async function registerPlugin(plugin: BridgePlugin): Promise<void> {
       name: toolName,
       description: handler.description,
       extensionCommand: extCommand,
-      // Plugin commands use a generic params schema since they handle validation internally
-      params: z.object({}).passthrough(),
+      params: handler.params ?? z.object({}).passthrough(),
     })
   }
 

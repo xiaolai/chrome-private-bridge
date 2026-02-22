@@ -1,4 +1,5 @@
 import type { BridgePlugin, ExecutionContext } from "../types"
+import { sleep } from "../utils"
 
 const xPost: BridgePlugin = {
   name: "x",
@@ -34,10 +35,6 @@ const xPost: BridgePlugin = {
       },
     },
   },
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise(r => setTimeout(r, ms))
 }
 
 export default xPost

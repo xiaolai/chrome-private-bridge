@@ -108,4 +108,16 @@ describe("config module", () => {
     const { config } = await import("../config")
     expect(config.restEnabled).toBe(false)
   })
+
+  test("invalid PORT falls back to default", async () => {
+    process.env.PORT = "not_a_number"
+    const { config } = await import("../config")
+    expect(config.port).toBe(7890)
+  })
+
+  test("negative PORT falls back to default", async () => {
+    process.env.PORT = "-1"
+    const { config } = await import("../config")
+    expect(config.port).toBe(7890)
+  })
 })

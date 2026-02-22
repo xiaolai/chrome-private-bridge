@@ -1,4 +1,6 @@
+import { config } from "../config"
 import type { BridgePlugin, ExecutionContext } from "../types"
+import { sleep } from "../utils"
 
 const wechatPost: BridgePlugin = {
   name: "wechat",
@@ -7,7 +9,7 @@ const wechatPost: BridgePlugin = {
     post: {
       description: "Post an article to WeChat Official Account",
       async execute(params: unknown, ctx: ExecutionContext) {
-        const p = params as { title: string; html: string; coverImage?: string }
+        const p = params as { title: string; html: string }
         if (!p.title || !p.html) throw new Error("Missing 'title' or 'html'")
 
         await ctx.send("navigate", { url: "https://mp.weixin.qq.com/" })
@@ -20,6 +22,9 @@ const wechatPost: BridgePlugin = {
         await ctx.send("click", { selector: "#title" })
         await ctx.send("type", { selector: "#title", text: p.title })
 
+        if (!config.enableEvaluate) {
+          throw new Error("evaluate command is disabled. Set ENABLE_EVALUATE=true to enable")
+        }
         await ctx.send("evaluate", {
           expression: `
             const editor = document.querySelector('#edui1_contentplaceholder');
@@ -36,10 +41,6 @@ const wechatPost: BridgePlugin = {
       },
     },
   },
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise(r => setTimeout(r, ms))
 }
 
 export default wechatPost

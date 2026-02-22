@@ -153,4 +153,29 @@ describe("ws/manager", () => {
 
     handleClose(ws)
   })
+
+  test("handleOpen() replaces existing connection and clears pending", () => {
+    const ws1 = createMockWs()
+    handleOpen(ws1)
+    expect(isConnected()).toBe(true)
+
+    const ws2 = createMockWs()
+    handleOpen(ws2)
+    expect(isConnected()).toBe(true)
+    expect(getExtensionSocket()).toBe(ws2)
+    // ws1 should have been closed
+    expect(ws1.readyState).toBe(WebSocket.CLOSED)
+
+    handleClose(ws2)
+  })
+
+  test("sendToExtension() rejects when send throws", async () => {
+    const ws = createMockWs()
+    ws.send = () => { throw new Error("send failed") }
+    handleOpen(ws)
+
+    await expect(sendToExtension("tab.list")).rejects.toThrow("send failed")
+
+    handleClose(ws)
+  })
 })

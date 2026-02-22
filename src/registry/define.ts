@@ -24,6 +24,9 @@ export interface McpTool {
 const commands = new Map<string, CommandDef>()
 
 export function defineCommand(def: CommandDef): CommandDef {
+  if (commands.has(def.name)) {
+    throw new Error(`Command "${def.name}" already registered`)
+  }
   commands.set(def.name, def)
   return def
 }

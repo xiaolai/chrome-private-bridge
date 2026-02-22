@@ -1,12 +1,23 @@
 import { join } from "path"
 import { homedir } from "os"
 
+function intEnv(name: string, fallback: number): number {
+  const raw = process.env[name]
+  if (!raw) return fallback
+  const n = parseInt(raw, 10)
+  if (!Number.isFinite(n) || n < 0) {
+    console.error(`[config] Invalid ${name}: "${raw}" — using default ${fallback}`)
+    return fallback
+  }
+  return n
+}
+
 export const config = {
-  port: parseInt(process.env.PORT || "7890"),
+  port: intEnv("PORT", 7890),
   host: process.env.HOST || "0.0.0.0",
-  rateLimit: parseInt(process.env.RATE_LIMIT || "60"),
-  rateWindow: parseInt(process.env.RATE_WINDOW || "60000"),
-  commandTimeout: parseInt(process.env.COMMAND_TIMEOUT || "30000"),
+  rateLimit: intEnv("RATE_LIMIT", 60),
+  rateWindow: intEnv("RATE_WINDOW", 60000),
+  commandTimeout: intEnv("COMMAND_TIMEOUT", 30000),
   corsOrigin: process.env.CORS_ORIGIN || "",
   enableEvaluate: process.env.ENABLE_EVALUATE === "true",
   configDir: process.env.CONFIG_DIR || join(homedir(), ".config", "chrome-bridge"),

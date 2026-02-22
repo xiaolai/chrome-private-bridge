@@ -13,8 +13,21 @@ const KEYS_FILE = join(CONFIG_DIR, "keys.json")
 export function loadKeys(): KeyStore {
   if (!existsSync(KEYS_FILE)) return { keys: [] }
   try {
-    return JSON.parse(readFileSync(KEYS_FILE, "utf-8"))
-  } catch {
+    const data = JSON.parse(readFileSync(KEYS_FILE, "utf-8"))
+    if (!data || !Array.isArray(data.keys)) {
+      console.error(`[store] Invalid keys.json: missing "keys" array, resetting`)
+      return { keys: [] }
+    }
+    // Filter out malformed key entries
+    const validKeys = data.keys.filter((k: unknown) =>
+      k && typeof k === "object" && typeof (k as any).key === "string" && typeof (k as any).name === "string"
+    )
+    if (validKeys.length !== data.keys.length) {
+      console.error(`[store] Filtered ${data.keys.length - validKeys.length} invalid key entries`)
+    }
+    return { keys: validKeys } as KeyStore
+  } catch (err) {
+    console.error(`[store] Failed to parse keys.json: ${err instanceof Error ? err.message : err}`)
     return { keys: [] }
   }
 }
