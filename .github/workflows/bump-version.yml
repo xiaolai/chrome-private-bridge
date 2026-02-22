@@ -18,6 +18,8 @@ permissions:
 jobs:
   bump:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,4 +53,6 @@ jobs:
   release:
     needs: bump
     uses: ./.github/workflows/release.yml
+    with:
+      version: ${{ needs.bump.outputs.version }}
     secrets: inherit
