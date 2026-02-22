@@ -10,8 +10,7 @@
     "cookies",
     "debugger",
     "clipboardWrite",
-    "storage",
-    "nativeMessaging"
+    "storage"
   ],
   "host_permissions": [
     "<all_urls>"

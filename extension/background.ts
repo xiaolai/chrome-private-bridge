@@ -7,7 +7,7 @@ import { screenshot } from "./lib/commands/screenshot"
 import { evaluate } from "./lib/commands/evaluate"
 import { cookieGet, cookieSet } from "./lib/commands/cookies"
 import { fileSet } from "./lib/commands/file-input"
-import { clipboardWrite, clipboardPaste } from "./lib/commands/clipboard"
+import { clipboardWrite } from "./lib/commands/clipboard"
 
 type CommandFn = (params: any) => Promise<unknown>
 
@@ -29,7 +29,6 @@ const commands: Record<string, CommandFn> = {
   "cookie.set": cookieSet,
   "file.set": fileSet,
   "clipboard.write": clipboardWrite,
-  "clipboard.paste": clipboardPaste,
 }
 
 onMessage(async (msg) => {
@@ -52,22 +51,28 @@ onMessage(async (msg) => {
   }
 })
 
+const iconOff = { 16: "icons/icon16.png", 48: "icons/icon48.png", 128: "icons/icon128.png" }
+const iconOn = { 16: "icons/icon16-on.png", 48: "icons/icon48-on.png", 128: "icons/icon128-on.png" }
+
 onStatus((status) => {
-  chrome.action.setBadgeText({ text: status === "connected" ? "ON" : "" })
-  chrome.action.setBadgeBackgroundColor({ color: status === "connected" ? "#22c55e" : "#ef4444" })
+  chrome.storage.local.set({ connectionStatus: status })
+  chrome.action.setIcon({ path: status === "connected" ? iconOn : iconOff })
 })
 
-chrome.storage.local.get(["relayUrl", "token"], (data) => {
-  if (data.relayUrl && data.token) {
-    configure(data.relayUrl, data.token)
-    connect()
-  }
+// Auto-connect on startup
+const DEFAULT_URL = "http://localhost:7890"
+
+chrome.storage.local.get(["relayUrl"], (data) => {
+  const url = data.relayUrl || DEFAULT_URL
+  chrome.storage.local.set({ relayUrl: url })
+  configure(url)
+  connect()
 })
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.action === "connect") {
-    chrome.storage.local.set({ relayUrl: msg.relayUrl, token: msg.token }, () => {
-      configure(msg.relayUrl, msg.token)
+    chrome.storage.local.set({ relayUrl: msg.relayUrl }, () => {
+      configure(msg.relayUrl)
       connect()
       sendResponse({ ok: true })
     })
@@ -78,7 +83,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     sendResponse({ ok: true })
     return true
   }
-  // WI-3.4: Return actual connection status instead of hardcoded false
   if (msg.action === "getStatus") {
     sendResponse({ connected: isConnected() })
     return true

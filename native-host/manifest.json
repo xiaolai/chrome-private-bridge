@@ -1,9 +1,0 @@
-{
-  "name": "com.chrome_bridge.native_host",
-  "description": "Chrome Bridge native messaging host for OS-level operations",
-  "path": "/usr/local/bin/chrome-bridge-native",
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://EXTENSION_ID_HERE/"
-  ]
-}

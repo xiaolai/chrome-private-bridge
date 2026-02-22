@@ -8,6 +8,6 @@
     "skipLibCheck": true,
     "types": ["bun-types"]
   },
-  "include": ["relay/**/*.ts", "client/**/*.ts", "native-host/**/*.ts"],
+  "include": ["src/**/*.ts", "client/**/*.ts"],
   "exclude": ["extension/**/*.ts"]
 }

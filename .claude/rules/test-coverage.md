@@ -5,7 +5,7 @@ globs: "**/*.ts"
 
 # 100% Test Coverage Rule
 
-## Target: 100% coverage on all relay/, client/, native-host/ code
+## Target: 100% coverage on all src/, client/ code
 
 Every module MUST have corresponding tests. No exceptions for "simple" code.
 
@@ -19,7 +19,7 @@ Every module MUST have corresponding tests. No exceptions for "simple" code.
 ## What this means in practice
 
 ### Every new file needs tests
-When creating `relay/foo.ts`, you MUST also create `relay/__tests__/foo.test.ts`.
+When creating `src/foo.ts`, you MUST also create `src/__tests__/foo.test.ts`.
 
 ### Every exported function needs tests
 - Happy path (expected inputs produce expected outputs)
@@ -36,18 +36,20 @@ When creating `relay/foo.ts`, you MUST also create `relay/__tests__/foo.test.ts`
 ### Current test inventory (keep up to date)
 | Module | Test File | Tests |
 |--------|-----------|-------|
-| relay/ws/pending.ts | relay/ws/__tests__/pending.test.ts | 10 |
-| relay/ws/extension-handler.ts | relay/ws/__tests__/extension-handler.test.ts | 16 |
-| relay/auth.ts | relay/__tests__/auth.test.ts | 21 |
-| relay/plugins/registry.ts | relay/plugins/__tests__/registry.test.ts | 8 |
-| relay/routes/commands.ts | relay/__tests__/commands.test.ts | 11 |
-| relay/schemas.ts | relay/__tests__/schemas.test.ts | 38 |
-| relay/config.ts | relay/__tests__/config.test.ts | 10 |
-| relay/logger.ts | relay/__tests__/logger.test.ts | 8 |
-| relay/store.ts | relay/__tests__/store.test.ts | 7 |
-| relay/routes/keys.ts | relay/__tests__/keys.test.ts | 20 |
-| relay/routes/status.ts | relay/__tests__/status.test.ts | 5 |
-| client/index.ts | client/__tests__/client.test.ts | 35 |
+| src/ws/pending.ts | src/ws/__tests__/pending.test.ts | 10 |
+| src/ws/manager.ts | src/ws/__tests__/manager.test.ts | 14 |
+| src/auth.ts | src/__tests__/auth.test.ts | 19 |
+| src/plugins/loader.ts | src/plugins/__tests__/loader.test.ts | 12 |
+| src/rest/commands.ts | src/rest/__tests__/commands.test.ts | 13 |
+| src/registry/define.ts | src/registry/__tests__/define.test.ts | 11 |
+| src/registry/* | src/registry/__tests__/commands.test.ts | 38 |
+| src/mcp/handler.ts | src/mcp/__tests__/handler.test.ts | 19 |
+| src/config.ts | src/__tests__/config.test.ts | 12 |
+| src/logger.ts | src/__tests__/logger.test.ts | 8 |
+| src/store.ts | src/__tests__/store.test.ts | 7 |
+| src/rest/keys.ts | src/rest/__tests__/keys.test.ts | 20 |
+| src/rest/status.ts | src/rest/__tests__/status.test.ts | 4 |
+| client/index.ts | client/__tests__/client.test.ts | 29 |
 
 ## Tooling
 
@@ -78,4 +80,4 @@ When creating `relay/foo.ts`, you MUST also create `relay/__tests__/foo.test.ts`
 3. Run `bun run typecheck` — no type errors
 
 ## Extension code (extension/) is EXEMPT
-Extension code runs in Chrome and requires browser APIs — unit testing is not practical without a full browser harness. Focus testing effort on relay/, client/, and native-host/.
+Extension code runs in Chrome and requires browser APIs — unit testing is not practical without a full browser harness. Focus testing effort on src/ and client/.

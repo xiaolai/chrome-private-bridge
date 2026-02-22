@@ -118,8 +118,4 @@ export class ChromeBridge {
   async clipboardWrite(opts: { text?: string; html?: string; imageBase64?: string }) {
     return this.command("clipboard.write", opts)
   }
-
-  async clipboardPaste() {
-    return this.command("clipboard.paste")
-  }
 }

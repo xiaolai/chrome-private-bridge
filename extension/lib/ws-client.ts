@@ -6,12 +6,10 @@ let reconnectTimer: ReturnType<typeof setTimeout> | null = null
 let messageHandler: MessageHandler | null = null
 let statusHandler: StatusHandler | null = null
 let relayUrl = ""
-let token = ""
 let reconnectDelay = 1000
 
-export function configure(url: string, authToken: string): void {
+export function configure(url: string): void {
   relayUrl = url.replace(/^http/, "ws").replace(/\/$/, "") + "/ws"
-  token = authToken
 }
 
 export function onMessage(handler: MessageHandler): void {
@@ -24,7 +22,7 @@ export function onStatus(handler: StatusHandler): void {
 
 export function connect(): void {
   if (ws && ws.readyState === WebSocket.OPEN) return
-  if (!relayUrl || !token) return
+  if (!relayUrl) return
 
   statusHandler?.("connecting")
 
@@ -32,21 +30,12 @@ export function connect(): void {
 
   ws.onopen = () => {
     reconnectDelay = 1000
-    ws!.send(JSON.stringify({ type: "auth", token }))
+    statusHandler?.("connected")
   }
 
   ws.onmessage = (event) => {
     try {
       const msg = JSON.parse(event.data)
-      if (msg.type === "auth") {
-        if (msg.ok) {
-          statusHandler?.("connected")
-        } else {
-          console.error("[ws] Auth failed:", msg.error)
-          ws?.close()
-        }
-        return
-      }
       messageHandler?.(msg)
     } catch (e) {
       console.error("[ws] Parse error:", e)

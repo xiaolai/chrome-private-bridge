@@ -5,30 +5,35 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      width: 320px;
+      width: 260px;
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       font-size: 13px;
       color: #1a1a1a;
       padding: 16px;
     }
-    h1 { font-size: 16px; margin-bottom: 12px; }
+    h1 { font-size: 15px; margin-bottom: 12px; }
     .status {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 16px;
-      padding: 8px 12px;
+      padding: 10px 12px;
       border-radius: 6px;
       background: #f5f5f5;
+      margin-bottom: 12px;
     }
     .dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
       background: #ef4444;
+      flex-shrink: 0;
     }
     .dot.connected { background: #22c55e; }
-    .dot.connecting { background: #f59e0b; }
+    .dot.connecting { background: #f59e0b; animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
     label {
       display: block;
       font-size: 11px;
@@ -39,28 +44,14 @@
     }
     input {
       width: 100%;
-      padding: 8px 10px;
+      padding: 6px 8px;
       border: 1px solid #ddd;
       border-radius: 6px;
-      font-size: 13px;
-      margin-bottom: 12px;
+      font-size: 12px;
+      color: #666;
       outline: none;
     }
-    input:focus { border-color: #3b82f6; }
-    .actions { display: flex; gap: 8px; }
-    button {
-      flex: 1;
-      padding: 8px 12px;
-      border: none;
-      border-radius: 6px;
-      font-size: 13px;
-      cursor: pointer;
-      font-weight: 500;
-    }
-    .btn-primary { background: #3b82f6; color: white; }
-    .btn-primary:hover { background: #2563eb; }
-    .btn-secondary { background: #e5e7eb; color: #374151; }
-    .btn-secondary:hover { background: #d1d5db; }
+    input:focus { border-color: #3b82f6; color: #1a1a1a; }
   </style>
 </head>
 <body>
@@ -71,12 +62,6 @@
   </div>
   <label>Relay URL</label>
   <input type="text" id="relayUrl" placeholder="http://localhost:7890">
-  <label>Extension Token</label>
-  <input type="text" id="token" placeholder="ext_...">
-  <div class="actions">
-    <button class="btn-primary" id="connectBtn">Connect</button>
-    <button class="btn-secondary" id="disconnectBtn">Disconnect</button>
-  </div>
   <script src="popup.js"></script>
 </body>
 </html>

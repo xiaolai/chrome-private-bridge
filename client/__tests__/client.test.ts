@@ -215,8 +215,4 @@ describe("ChromeBridge client", () => {
     expect(result.ok).toBe(true)
   })
 
-  test("clipboardPaste() sends clipboard.paste command", async () => {
-    const result = await bridge.clipboardPaste()
-    expect(result.ok).toBe(true)
-  })
 })

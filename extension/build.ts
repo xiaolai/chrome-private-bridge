@@ -30,9 +30,11 @@ async function build() {
   if (!existsSync(iconsDir)) mkdirSync(iconsDir)
 
   for (const size of [16, 48, 128]) {
-    const src = join(SRC, "icons", `icon${size}.png`)
-    if (existsSync(src)) {
-      copyFileSync(src, join(iconsDir, `icon${size}.png`))
+    for (const suffix of ["", "-on"]) {
+      const src = join(SRC, "icons", `icon${size}${suffix}.png`)
+      if (existsSync(src)) {
+        copyFileSync(src, join(iconsDir, `icon${size}${suffix}.png`))
+      }
     }
   }
 

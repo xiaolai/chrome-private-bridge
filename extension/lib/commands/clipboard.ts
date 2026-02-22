@@ -34,27 +34,3 @@ export async function clipboardWrite(params: { text?: string; html?: string; ima
   throw new Error("Provide text, html, or imageBase64")
 }
 
-export async function clipboardPaste(): Promise<unknown> {
-  const port = chrome.runtime.connectNative("com.chrome_bridge.native_host")
-
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      port.disconnect()
-      reject(new Error("Native host timeout"))
-    }, 10000)
-
-    port.onMessage.addListener((msg: any) => {
-      clearTimeout(timeout)
-      port.disconnect()
-      resolve(msg)
-    })
-
-    port.onDisconnect.addListener(() => {
-      clearTimeout(timeout)
-      const err = chrome.runtime.lastError?.message || "Native host disconnected"
-      reject(new Error(err))
-    })
-
-    port.postMessage({ command: "paste" })
-  })
-}
