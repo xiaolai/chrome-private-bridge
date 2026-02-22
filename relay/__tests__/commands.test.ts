@@ -34,7 +34,9 @@ import { extractBearerToken, validateKey, getKeyPermissions, flushKeys } from ".
 import { handleCommand } from "../routes/commands"
 import { handleKeys } from "../routes/keys"
 import { handleStatus } from "../routes/status"
-import { isConnected } from "../ws/extension-handler"
+import { isConnected, handleMessage, handleClose, getExtensionSocket } from "../ws/extension-handler"
+import { getExtensionToken } from "../auth"
+import type { WsData } from "../ws/extension-handler"
 
 // Build a mini server for integration testing
 function buildFetch() {
@@ -166,6 +168,55 @@ describe("command routing integration", () => {
     expect(resp.status).toBe(403)
   })
 
+  test("POST /api/v1/command with missing 'command' field → 400", async () => {
+    const req = authedReq("/api/v1/command", {
+      method: "POST",
+      body: JSON.stringify({ params: { url: "https://x.com" } }),
+    })
+    const resp = await fetch_handler(req)
+    expect(resp.status).toBe(400)
+    const data = await resp.json()
+    expect(data.error).toContain("Missing 'command' field")
+  })
+
+  test("POST /api/v1/command with non-string command → 400", async () => {
+    const req = authedReq("/api/v1/command", {
+      method: "POST",
+      body: JSON.stringify({ command: 123 }),
+    })
+    const resp = await fetch_handler(req)
+    expect(resp.status).toBe(400)
+    const data = await resp.json()
+    expect(data.error).toContain("Missing 'command' field")
+  })
+
+  test("POST /api/v1/command with invalid params → 400 validation error", async () => {
+    const req = authedReq("/api/v1/command", {
+      method: "POST",
+      body: JSON.stringify({ command: "navigate", params: {} }),
+    })
+    const resp = await fetch_handler(req)
+    expect(resp.status).toBe(400)
+    const data = await resp.json()
+    expect(data.error).toContain("Missing required field: url")
+  })
+
+  test("POST /api/v1/command with restricted key → 403 permission denied", async () => {
+    const restrictedKey = generateKey("restricted", ["tab.list"])
+    const req = makeReq("/api/v1/command", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${restrictedKey}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ command: "navigate", params: { url: "https://x.com" } }),
+    })
+    const resp = await fetch_handler(req)
+    expect(resp.status).toBe(403)
+    const data = await resp.json()
+    expect(data.error).toContain("not allowed for this key")
+  })
+
   test("POST /api/v1/command evaluate when disabled → 403", async () => {
     const req = authedReq("/api/v1/command", {
       method: "POST",
@@ -175,5 +226,86 @@ describe("command routing integration", () => {
     expect(resp.status).toBe(403)
     const data = await resp.json()
     expect(data.error).toContain("evaluate command is disabled")
+  })
+
+  test("POST /api/v1/command with connected extension → sends to extension and returns result", async () => {
+    // Create mock WebSocket and authenticate it
+    const sentMessages: string[] = []
+    const mockWs: any = {
+      data: { authenticated: false } as WsData,
+      readyState: WebSocket.OPEN,
+      send(msg: string) { sentMessages.push(msg) },
+      close() { this.readyState = WebSocket.CLOSED },
+    }
+    const token = getExtensionToken()
+    handleMessage(mockWs, JSON.stringify({ type: "auth", token }))
+
+    // Now send a command that will go to the extension
+    const req = authedReq("/api/v1/command", {
+      method: "POST",
+      body: JSON.stringify({ command: "tab.list" }),
+    })
+    const respPromise = fetch_handler(req)
+
+    // Wait a tick for the command to be sent
+    await new Promise(r => setTimeout(r, 10))
+
+    // Find the command message sent to the extension
+    const cmdMsg = sentMessages.find(m => {
+      const parsed = JSON.parse(m)
+      return parsed.type === "command" && parsed.command === "tab.list"
+    })
+    expect(cmdMsg).toBeDefined()
+    const parsed = JSON.parse(cmdMsg!)
+
+    // Simulate extension response
+    handleMessage(mockWs, JSON.stringify({ type: "response", id: parsed.id, result: [{ id: 1, url: "https://x.com" }] }))
+
+    const resp = await respPromise
+    expect(resp.status).toBe(200)
+    const data = await resp.json()
+    expect(data.ok).toBe(true)
+    expect(data.result).toEqual([{ id: 1, url: "https://x.com" }])
+
+    // Cleanup: disconnect mock extension
+    handleClose(mockWs)
+  })
+
+  test("POST /api/v1/command when extension throws → 500", async () => {
+    // Connect mock extension
+    const sentMessages: string[] = []
+    const mockWs: any = {
+      data: { authenticated: false } as WsData,
+      readyState: WebSocket.OPEN,
+      send(msg: string) { sentMessages.push(msg) },
+      close() { this.readyState = WebSocket.CLOSED },
+    }
+    const token = getExtensionToken()
+    handleMessage(mockWs, JSON.stringify({ type: "auth", token }))
+
+    const req = authedReq("/api/v1/command", {
+      method: "POST",
+      body: JSON.stringify({ command: "screenshot" }),
+    })
+    const respPromise = fetch_handler(req)
+
+    await new Promise(r => setTimeout(r, 10))
+
+    const cmdMsg = sentMessages.find(m => {
+      const parsed = JSON.parse(m)
+      return parsed.type === "command" && parsed.command === "screenshot"
+    })
+    const parsed = JSON.parse(cmdMsg!)
+
+    // Simulate error response from extension
+    handleMessage(mockWs, JSON.stringify({ type: "response", id: parsed.id, error: "Screenshot failed" }))
+
+    const resp = await respPromise
+    expect(resp.status).toBe(500)
+    const data = await resp.json()
+    expect(data.ok).toBe(false)
+    expect(data.error).toBe("Screenshot failed")
+
+    handleClose(mockWs)
   })
 })

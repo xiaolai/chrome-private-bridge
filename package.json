@@ -7,11 +7,15 @@
     "start": "bun relay/server.ts",
     "build:ext": "bun extension/build.ts",
     "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "test:ci": "bun test --coverage --bail",
+    "prepare": "git config core.hooksPath .githooks",
     "keygen": "bun relay/server.ts keygen",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/chrome": "latest",
     "bun-types": "latest",
-    "@types/chrome": "latest"
+    "typescript": "^5.9.3"
   }
 }
