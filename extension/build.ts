@@ -30,17 +30,13 @@ async function build() {
   if (!existsSync(iconsDir)) mkdirSync(iconsDir)
 
   for (const size of [16, 48, 128]) {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 128 128">
-      <rect width="128" height="128" rx="20" fill="#3b82f6"/>
-      <text x="64" y="80" text-anchor="middle" fill="white" font-size="64" font-family="monospace" font-weight="bold">CB</text>
-    </svg>`
-    writeFileSync(join(iconsDir, `icon${size}.svg`), svg)
-
-    writeFileSync(join(iconsDir, `icon${size}.png`), Buffer.alloc(0))
+    const src = join(SRC, "icons", `icon${size}.png`)
+    if (existsSync(src)) {
+      copyFileSync(src, join(iconsDir, `icon${size}.png`))
+    }
   }
 
   console.log("Extension built to:", DIST)
-  console.log("Note: Replace placeholder icons in dist/icons/ with real PNGs")
 }
 
 build()
