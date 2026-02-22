@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+echo "=== Pre-commit: typecheck ==="
+bun run typecheck
+echo "=== Pre-commit: tests + coverage ==="
+bun run test:coverage
+echo "Pre-commit checks passed."

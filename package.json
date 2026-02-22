@@ -1,0 +1,26 @@
+{
+  "name": "chrome-private-bridge",
+  "version": "0.2.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch src/server.ts",
+    "start": "bun src/server.ts",
+    "build:ext": "bun extension/build.ts",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "test:ci": "bun test --coverage --bail",
+    "prepare": "git config core.hooksPath .githooks",
+    "keygen": "bun src/server.ts keygen",
+    "typecheck": "tsc --noEmit",
+    "build": "bun build --compile src/server.ts --outfile chrome-private-bridge",
+    "build:all": "scripts/build-all.sh"
+  },
+  "devDependencies": {
+    "@types/chrome": "latest",
+    "bun-types": "latest",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  }
+}
