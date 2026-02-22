@@ -59,14 +59,29 @@ onStatus((status) => {
   chrome.action.setIcon({ path: status === "connected" ? iconOn : iconOff })
 })
 
-// Auto-connect on startup
+// Auto-connect on startup and keepalive via alarms
 const DEFAULT_URL = "http://localhost:7890"
+const KEEPALIVE_ALARM = "ws-keepalive"
 
 chrome.storage.local.get(["relayUrl"], (data) => {
   const url = data.relayUrl || DEFAULT_URL
   chrome.storage.local.set({ relayUrl: url })
   configure(url)
   connect()
+})
+
+// Keepalive: periodically wake the service worker to check/restore the WebSocket
+chrome.alarms.create(KEEPALIVE_ALARM, { periodInMinutes: 0.4 }) // ~25 seconds
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name !== KEEPALIVE_ALARM) return
+  if (!isConnected()) {
+    chrome.storage.local.get(["relayUrl"], (data) => {
+      const url = data.relayUrl || DEFAULT_URL
+      configure(url)
+      connect()
+    })
+  }
 })
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {

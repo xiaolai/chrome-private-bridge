@@ -7,6 +7,12 @@ chrome.storage.local.get(["relayUrl", "connectionStatus"], (data) => {
   if (data.connectionStatus) setStatus(data.connectionStatus)
 })
 
+// Ask background for live status (storage may be stale after service worker restart)
+chrome.runtime.sendMessage({ action: "getStatus" }, (resp) => {
+  if (chrome.runtime.lastError) return // background not ready
+  if (resp) setStatus(resp.connected ? "connected" : "disconnected")
+})
+
 // Auto-save and reconnect when URL changes
 relayUrlInput.addEventListener("change", () => {
   const relayUrl = relayUrlInput.value.trim()
